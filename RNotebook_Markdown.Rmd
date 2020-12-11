@@ -1,0 +1,83 @@
+---
+output_dir: "."
+title: "R Notebook"
+output: html_document
+---
+
+# This is a heading not a comment 
+
+
+```{r load data & transform data, message=FALSE}
+# load tidyverse library 
+library(tidyverse)
+library(kableExtra) # used for kbl function
+library(rmarkdown)
+library(ggpubr)# used for publivations
+
+# read file into R
+pop_data <-read.csv("data/gapminder_data.csv")
+
+# create a table with data from european countries in 2007 and order by life expectancy
+
+euro_data_tbl <- pop_data %>%
+  filter(continent == "Europe" & year == 2007) %>% 
+  select(-continent, - year) %>% 
+  arrange(desc(lifeExp)) %>% 
+  rename(Country = country, "Population Size" = pop, "Life Expectancy" = lifeExp, "GDP" = gdpPercap)
+```
+
+The results in euro_data_tbl are displayed in the table below
+
+```{r kbl}
+euro_data_tbl %>% 
+  kbl() %>% 
+  kable_styling(bootstrap_options = c("striped", "hover")) %>% 
+  scroll_box(width = "100%", height = "200px")
+```
+
+
+\
+
+```{r markdown}
+paged_table(euro_data_tbl)
+```
+
+\
+
+```{r image}
+euro_data_fig <- pop_data %>% 
+  filter(continent == "Europe") %>% 
+  mutate(year=as.factor(year))
+
+
+euro_plot <- euro_data_fig%>% 
+  ggplot(aes(x=year, y=lifeExp))+
+  geom_violin()+
+  stat_summary(fun.y = median, geom = "point")
+
+# keep only uK data
+
+uk_data_fig <- pop_data %>% 
+  filter(country == "United Kingdom") %>% 
+  mutate(year=as.factor(year))
+
+```
+
+Now display more than 1 figure together 
+
+```{r figure}
+
+# UK Plot 
+ uk_plot <- uk_data_fig %>% 
+  ggplot(mapping = aes(x=year, y=lifeExp))+
+  geom_point()
+
+#plot EU and UK plot them together
+
+ggarrange(euro_plot, uk_plot, ncol = 2, nrow = 1)
+
+
+```
+
+
+
